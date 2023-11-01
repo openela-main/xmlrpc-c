@@ -1,0 +1,32 @@
+From 06d354807ac297374973631a6418edf7e3fcbf30 Mon Sep 17 00:00:00 2001
+From: Rob Crittenden <rcritten@redhat.com>
+Date: Mon, 28 Feb 2022 10:43:23 -0500
+Subject: [PATCH 6/6] Prevent integer overflow on m_groupSize in doProlog
+ (CVE-2021-46143)
+
+Backported from upstream https://github.com/libexpat/libexpat/pull/538
+
+Resolves: #2058560
+---
+ lib/expat/xmlparse/xmlparse.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/lib/expat/xmlparse/xmlparse.c b/lib/expat/xmlparse/xmlparse.c
+index 16ab82a..b9aa927 100644
+--- a/lib/expat/xmlparse/xmlparse.c
++++ b/lib/expat/xmlparse/xmlparse.c
+@@ -3991,6 +3991,11 @@ doProlog(XML_Parser       const xmlParserP,
+     case XML_ROLE_GROUP_OPEN:
+       if (prologState.level >= groupSize) {
+         if (groupSize) {
++          /* Detect and prevent integer overflow */
++          if (groupSize > (unsigned int)(-1) / 2u) {
++            *errorCodeP = XML_ERROR_NO_MEMORY;
++            return;
++          }
+           char *temp = realloc(groupConnector, groupSize *= 2);
+           if (!temp) {
+             *errorCodeP = XML_ERROR_NO_MEMORY;
+-- 
+2.31.1
+
