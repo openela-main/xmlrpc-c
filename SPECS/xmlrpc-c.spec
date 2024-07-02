@@ -6,7 +6,7 @@
 
 Name:           xmlrpc-c
 Version:        1.51.0
-Release:        8%{?dist}
+Release:        9%{?dist}
 Summary:        Lightweight RPC library based on XML and HTTP
 # See doc/COPYING for details.
 # The Python 1.5.2 license used by a few files is just BSD.
@@ -17,6 +17,7 @@ URL:            http://xmlrpc-c.sourceforge.net/
 # upstream does not tag versions so we must fetch from the branch and
 # check which version was used for it
 %{?advanced_branch:Source0: xmlrpc-c-%version.tar.xz}
+%{?advanced_branch:Source1: benchmark-tests.tar.xz}
 
 # Upstreamable patches
 Patch101:       0001-xmlrpc_server_abyss-use-va_args-properly.patch
@@ -27,6 +28,7 @@ Patch103:       0003-allow-30x-redirections.patch
 Patch104:       0004-Add-missing-validation-of-encoding-CVE-2022-25235.patch
 Patch105:       0005-lib-Prevent-more-integer-overflows-CVE-2022-22822-to.patch
 Patch106:       0006-Prevent-integer-overflow-on-m_groupSize-in-doProlog-.patch
+Patch107:       0007-Address-segfault-found-in-CVE-2023-52425.patch
 
 # Backported patches
 # https://sourceforge.net/p/xmlrpc-c/code/2981/
@@ -129,6 +131,7 @@ This package contains some handy XML-RPC demo applications.
 
 %prep
 %autosetup -Sgit
+tar xf %{SOURCE1}
 
 %build
 %meson %{?with_libxml2:-Dlibxml2-backend=true}
@@ -194,6 +197,9 @@ This package contains some handy XML-RPC demo applications.
 %{_bindir}/xmlrpc_dumpserver
 
 %changelog
+* Thu Apr 25 2024 Rob Crittenden <rcritten@redhat.com> - 1.51.0-9
+- Address segfault found in CVE-2023-52425 (RHEL-24226)
+
 * Thu Apr 14 2022 Rob Crittenden <rcritten@redhat.com> - 1.51.0-8
 - Address some Coverity issues in the patch set
 
