@@ -6,7 +6,7 @@
 
 Name:           xmlrpc-c
 Version:        1.51.0
-Release:        9%{?dist}
+Release:        10%{?dist}
 Summary:        Lightweight RPC library based on XML and HTTP
 # See doc/COPYING for details.
 # The Python 1.5.2 license used by a few files is just BSD.
@@ -29,6 +29,7 @@ Patch104:       0004-Add-missing-validation-of-encoding-CVE-2022-25235.patch
 Patch105:       0005-lib-Prevent-more-integer-overflows-CVE-2022-22822-to.patch
 Patch106:       0006-Prevent-integer-overflow-on-m_groupSize-in-doProlog-.patch
 Patch107:       0007-Address-segfault-found-in-CVE-2023-52425.patch
+Patch108:       0008-Prevent-integer-overflow-or-wraparound-CVE-2024-4549.patch
 
 # Backported patches
 # https://sourceforge.net/p/xmlrpc-c/code/2981/
@@ -197,6 +198,9 @@ tar xf %{SOURCE1}
 %{_bindir}/xmlrpc_dumpserver
 
 %changelog
+* Thu Sep 19 2024 Rob Crittenden <rcritten@redhat.com> - 1.51.0-10
+- Prevent integer overflow or wraparound, CVE-2024-4549 (RHEL-57519)
+
 * Thu Apr 25 2024 Rob Crittenden <rcritten@redhat.com> - 1.51.0-9
 - Address segfault found in CVE-2023-52425 (RHEL-24226)
 
