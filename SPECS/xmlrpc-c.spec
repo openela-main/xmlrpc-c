@@ -6,7 +6,7 @@
 
 Name:           xmlrpc-c
 Version:        1.51.0
-Release:        10%{?dist}
+Release:        11%{?dist}
 Summary:        Lightweight RPC library based on XML and HTTP
 # See doc/COPYING for details.
 # The Python 1.5.2 license used by a few files is just BSD.
@@ -30,6 +30,8 @@ Patch105:       0005-lib-Prevent-more-integer-overflows-CVE-2022-22822-to.patch
 Patch106:       0006-Prevent-integer-overflow-on-m_groupSize-in-doProlog-.patch
 Patch107:       0007-Address-segfault-found-in-CVE-2023-52425.patch
 Patch108:       0008-Prevent-integer-overflow-or-wraparound-CVE-2024-4549.patch
+Patch109:       0009-Restrict-XML-Entity-Expansion-Depth-in-libexpat-CVE-.patch
+Patch110:       0010-Add-missing-files-for-the-benchmark-tests.patch
 
 # Backported patches
 # https://sourceforge.net/p/xmlrpc-c/code/2981/
@@ -198,6 +200,9 @@ tar xf %{SOURCE1}
 %{_bindir}/xmlrpc_dumpserver
 
 %changelog
+* Wed Mar 19 2025 Rob Crittenden <rcritten@redhat.com> - 1.51.0-11
+- Restrict XML Entity Expansion Depth in libexpat CVE-2024-8176
+
 * Thu Sep 19 2024 Rob Crittenden <rcritten@redhat.com> - 1.51.0-10
 - Prevent integer overflow or wraparound, CVE-2024-4549 (RHEL-57519)
 

@@ -1,0 +1,286 @@
+From 0f3661572b50df9878412181dc600e69eafbd868 Mon Sep 17 00:00:00 2001
+From: root <root@vm-10-0-185-207.hosted.upshift.rdu2.redhat.com>
+Date: Wed, 19 Mar 2025 13:54:48 -0400
+Subject: [PATCH] Add missing files for the benchmark tests
+
+The SOURCES tarball needs to be manually unpacked.
+---
+ test/benchmark/Makefile    |  82 ++++++++++++++++++++
+ test/benchmark/README.txt  |  16 ++++
+ test/benchmark/benchmark.c | 152 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 250 insertions(+)
+ create mode 100644 test/benchmark/Makefile
+ create mode 100644 test/benchmark/README.txt
+ create mode 100644 test/benchmark/benchmark.c
+
+diff --git a/test/benchmark/Makefile b/test/benchmark/Makefile
+new file mode 100644
+index 0000000..20e648c
+--- /dev/null
++++ b/test/benchmark/Makefile
+@@ -0,0 +1,82 @@
++ifeq ($(SRCDIR),)
++  updir = $(shell echo $(dir $(1)) | sed 's/.$$//')
++  testDIR := $(call updir,$(CURDIR))
++  SRCDIR := $(call updir,$(testDIR))
++  BLDDIR := $(SRCDIR)
++endif
++SUBDIR := test/benchmark
++
++include $(BLDDIR)/config.mk
++
++PROGS = benchmark
++
++default: all
++
++all: $(PROGS)
++
++XMLRPC_C_CONFIG = $(BLDDIR)/xmlrpc-c-config.test
++
++LIBS := 
++
++LIBS += $(SOCKETLIBOPT) $(THREAD_LIBS)
++
++INCLUDES = -Isrcdir/include -I$(BLDDIR) -Isrcdir -Isrcdir/lib/util/include -Isrcdir/lib/expat/xmlparse
++
++# This 'common.mk' dependency makes sure the symlinks get built before
++# this make file is used for anything.
++
++$(SRCDIR)/common.mk: srcdir blddir
++
++include $(SRCDIR)/common.mk
++
++CFLAGS += $(INCLUDES)
++
++TEST_OBJS = benchmark.o
++
++#-----------------------------------------------------------------------------
++#  TEST_LIBS
++#-----------------------------------------------------------------------------
++TEST_LIBS =
++TEST_LIBS += $(LIBXMLRPC_UTIL_A)
++TEST_LIBS += $(LIBXMLRPC_XMLPARSE_A)
++TEST_LIBS += $(LIBXMLRPC_XMLTOK_A)
++
++benchmark: $(TEST_OBJS) $(TEST_LIBS)
++	$(CXXLD) -o $@ $(INCLUDES) $(LDFLAGS_ALL) $^ $(LIB_XML) $(TEST_LIBS)
++
++%.o:%.cpp
++	$(CC) -c $(INCLUDES) $(CXXFLAGS_ALL) $(D_INTERNAL_EXPAT) $<
++
++# Note the difference between 'check' and 'runtests'.  'check' means to check
++# our own correctness.  'runtests' means to run the tests that check our
++# parent's correctness
++
++.PHONY: check
++check:
++
++.PHONY: runtests
++runtests: benchmark
++	./benchmark aaaaaa_attr.xml 4096 1
++	./benchmark aaaaaa_comment.xml 4096 1
++	./benchmark aaaaaa_tag.xml 4096 1
++	./benchmark aaaaaa_text.xml 4096 1
++	-./benchmark aaaaaa_cdata.xml 4096 1
++	echo "PASSED"
++
++.PHONY: install
++install:
++
++.PHONY: uninstall
++uninstall:
++
++.PHONY: clean clean-local distclean
++clean: clean-common clean-local
++clean-local:
++	rm -f $(PROGS)
++
++distclean: clean distclean-common
++
++.PHONY: dep
++dep: dep-common
++
++include depend.mk
+diff --git a/test/benchmark/README.txt b/test/benchmark/README.txt
+new file mode 100644
+index 0000000..86414d5
+--- /dev/null
++++ b/test/benchmark/README.txt
+@@ -0,0 +1,16 @@
++Use this benchmark command line utility as follows:
++
++  benchmark [-n] <file name> <buffer size> <# iterations>
++
++The command line arguments are:
++
++  -n             ... optional; if supplied, namespace processing is turned on
++  <file name>    ... name/path of test xml file
++  <buffer size>  ... size of processing buffer;
++                     the file is parsed in chunks of this size
++  <# iterations> ... how often will the file be parsed
++
++Returns:
++
++  The time (in seconds) it takes to parse the test file,
++  averaged over the number of iterations.@
+diff --git a/test/benchmark/benchmark.c b/test/benchmark/benchmark.c
+new file mode 100644
+index 0000000..3864280
+--- /dev/null
++++ b/test/benchmark/benchmark.c
+@@ -0,0 +1,152 @@
++/*
++                            __  __            _
++                         ___\ \/ /_ __   __ _| |_
++                        / _ \\  /| '_ \ / _` | __|
++                       |  __//  \| |_) | (_| | |_
++                        \___/_/\_\ .__/ \__,_|\__|
++                                 |_| XML parser
++
++   Copyright (c) 2003-2006 Karl Waclawek <karl@waclawek.net>
++   Copyright (c) 2005-2007 Steven Solie <steven@solie.ca>
++   Copyright (c) 2017      Sebastian Pipping <sebastian@pipping.org>
++   Copyright (c) 2017      Rhodri James <rhodri@wildebeest.org.uk>
++   Licensed under the MIT license:
++
++   Permission is  hereby granted,  free of charge,  to any  person obtaining
++   a  copy  of  this  software   and  associated  documentation  files  (the
++   "Software"),  to  deal in  the  Software  without restriction,  including
++   without  limitation the  rights  to use,  copy,  modify, merge,  publish,
++   distribute, sublicense, and/or sell copies of the Software, and to permit
++   persons  to whom  the Software  is  furnished to  do so,  subject to  the
++   following conditions:
++
++   The above copyright  notice and this permission notice  shall be included
++   in all copies or substantial portions of the Software.
++
++   THE  SOFTWARE  IS  PROVIDED  "AS  IS",  WITHOUT  WARRANTY  OF  ANY  KIND,
++   EXPRESS  OR IMPLIED,  INCLUDING  BUT  NOT LIMITED  TO  THE WARRANTIES  OF
++   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
++   NO EVENT SHALL THE AUTHORS OR  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
++   DAMAGES OR  OTHER LIABILITY, WHETHER  IN AN  ACTION OF CONTRACT,  TORT OR
++   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
++   USE OR OTHER DEALINGS IN THE SOFTWARE.
++*/
++
++#include <sys/stat.h>
++#include <assert.h>
++#include <stddef.h> // ptrdiff_t
++#include <stdlib.h>
++#include <stdio.h>
++#include <time.h>
++#include "xmlparse.h"
++
++#ifdef XML_LARGE_SIZE
++#  define XML_FMT_INT_MOD "ll"
++#else
++#  define XML_FMT_INT_MOD "l"
++#endif
++
++#ifdef XML_UNICODE_WCHAR_T
++#  define XML_FMT_STR "ls"
++#else
++#  define XML_FMT_STR "s"
++#endif
++
++static void
++usage(const char *prog, int rc) {
++  fprintf(stderr, "usage: %s [-n] filename bufferSize nr_of_loops\n", prog);
++  exit(rc);
++}
++
++int
++main(int argc, char *argv[]) {
++  XML_Parser parser;
++  char *XMLBuf, *XMLBufEnd, *XMLBufPtr;
++  FILE *fd;
++  struct stat fileAttr;
++  int nrOfLoops, bufferSize, i, isFinal;
++  size_t fileSize;
++  int j = 0, ns = 0;
++  clock_t tstart, tend;
++  double cpuTime = 0.0;
++
++  if (argc > 1) {
++    if (argv[1][0] == '-') {
++      if (argv[1][1] == 'n' && argv[1][2] == '\0') {
++        ns = 1;
++        j = 1;
++      } else
++        usage(argv[0], 1);
++    }
++  }
++
++  if (argc != j + 4)
++    usage(argv[0], 1);
++
++  if (stat(argv[j + 1], &fileAttr) != 0) {
++    fprintf(stderr, "could not access file '%s'\n", argv[j + 1]);
++    return 2;
++  }
++
++  fd = fopen(argv[j + 1], "r");
++  if (! fd) {
++    fprintf(stderr, "could not open file '%s'\n", argv[j + 1]);
++    exit(2);
++  }
++
++  bufferSize = atoi(argv[j + 2]);
++  nrOfLoops = atoi(argv[j + 3]);
++  if (bufferSize <= 0 || nrOfLoops <= 0) {
++    fprintf(stderr, "buffer size and nr of loops must be greater than zero.\n");
++    exit(3);
++  }
++
++  XMLBuf = malloc(fileAttr.st_size);
++  fileSize = fread(XMLBuf, sizeof(char), fileAttr.st_size, fd);
++  fclose(fd);
++
++  if (ns)
++    parser = xmlrpc_XML_ParserCreateNS(NULL, '!');
++  else
++    parser = xmlrpc_XML_ParserCreate(NULL);
++
++  i = 0;
++  XMLBufEnd = XMLBuf + fileSize;
++  while (i < nrOfLoops) {
++    XMLBufPtr = XMLBuf;
++    isFinal = 0;
++    tstart = clock();
++    do {
++      ptrdiff_t parseBufferSize = XMLBufEnd - XMLBufPtr;
++      if (parseBufferSize <= (ptrdiff_t)bufferSize)
++        isFinal = 1;
++      else
++        parseBufferSize = bufferSize;
++      assert(parseBufferSize <= (ptrdiff_t)bufferSize);
++      if (! xmlrpc_XML_Parse(parser, XMLBufPtr, (int)parseBufferSize, isFinal)) {
++        fprintf(stderr,
++                "error '%" XML_FMT_STR "' at line %" XML_FMT_INT_MOD
++                "u character %" XML_FMT_INT_MOD "u\n",
++                xmlrpc_XML_ErrorString(xmlrpc_XML_GetErrorCode(parser)),
++                xmlrpc_XML_GetCurrentLineNumber(parser),
++                xmlrpc_XML_GetCurrentColumnNumber(parser));
++        free(XMLBuf);
++        xmlrpc_XML_ParserFree(parser);
++        exit(4);
++      }
++      XMLBufPtr += bufferSize;
++    } while (! isFinal);
++    tend = clock();
++    cpuTime += ((double)(tend - tstart)) / CLOCKS_PER_SEC;
++    //xmlrpc-c lacks XML_ParserReset
++    //xmlrpc_XML_ParserReset(parser, NULL);
++    i++;
++  }
++
++  xmlrpc_XML_ParserFree(parser);
++  free(XMLBuf);
++
++  printf("%d loops, with buffer size %d. Average time per loop: %f\n",
++         nrOfLoops, bufferSize, cpuTime / (double)nrOfLoops);
++  return 0;
++}
+-- 
+2.43.5
+
