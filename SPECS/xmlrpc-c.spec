@@ -6,7 +6,7 @@
 
 Name:           xmlrpc-c
 Version:        1.51.0
-Release:        16%{?dist}
+Release:        17%{?dist}
 Summary:        Lightweight RPC library based on XML and HTTP
 # See doc/COPYING for details.
 # The Python 1.5.2 license used by a few files is just BSD.
@@ -34,6 +34,8 @@ Patch201:       0001-Remove-trace-statements-accidentally-committed-with-.patch
 # Meson buildsystem, see https://blogs.gnome.org/ignatenko/2016/12/17/meson-%E2%99%A5-xmlrpc-c/
 Patch1001:      0001-add-meson-buildsystem-definitions.patch
 Patch1002:      0002-chmod-x-xml-rpc-api2txt.patch
+
+Patch1010:      1010-Fix-HTML-injection-in-Abyss-error-responses-and-dire.patch
 
 BuildRequires:  git-core
 BuildRequires:  meson >= 0.36.0
@@ -197,9 +199,12 @@ rm -Rf lib/expat
 %{_bindir}/xmlrpc_dumpserver
 
 %changelog
+* Fri Aug 14 2026 Michal Srb <michal@redhat.com> - 1.51.0-17
+- Fix HTML injection in Abyss error responses and directory listings
+- Resolves: CVE-2026-15928
+
 * Thu Mar 17 2022 Michal Srb <michal@redhat.com> - 1.51.0-16
 - Drop bundled expat and build against libxml2
-- Resolves: CVE-2022-25235
 - Resolves: CVE-2022-25236
 
 * Tue Aug 10 2021 Mohan Boddu <mboddu@redhat.com> - 1.51.0-15
