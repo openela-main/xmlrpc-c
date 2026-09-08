@@ -6,7 +6,7 @@
 
 Name:           xmlrpc-c
 Version:        1.51.0
-Release:        11%{?dist}
+Release:        11%{?dist}.1
 Summary:        Lightweight RPC library based on XML and HTTP
 # See doc/COPYING for details.
 # The Python 1.5.2 license used by a few files is just BSD.
@@ -32,6 +32,8 @@ Patch107:       0007-Address-segfault-found-in-CVE-2023-52425.patch
 Patch108:       0008-Prevent-integer-overflow-or-wraparound-CVE-2024-4549.patch
 Patch109:       0009-Restrict-XML-Entity-Expansion-Depth-in-libexpat-CVE-.patch
 Patch110:       0010-Add-missing-files-for-the-benchmark-tests.patch
+# https://sourceforge.net/p/xmlrpc-c/code/3342/
+Patch111:       0011-Fix-HTML-injection-CVE-2026-15928.patch
 
 # Backported patches
 # https://sourceforge.net/p/xmlrpc-c/code/2981/
@@ -41,6 +43,8 @@ Patch201:       0001-Remove-trace-statements-accidentally-committed-with-.patch
 # Meson buildsystem, see https://blogs.gnome.org/ignatenko/2016/12/17/meson-%E2%99%A5-xmlrpc-c/
 Patch1001:      0001-add-meson-buildsystem-definitions.patch
 Patch1002:      0002-chmod-x-xml-rpc-api2txt.patch
+# https://sourceforge.net/p/xmlrpc-c/code/3342/
+Patch1003:      0012-meson-add-html.c-to-libxmlrpc_abyss-sources.patch
 
 BuildRequires:  git-core
 BuildRequires:  meson >= 0.36.0
@@ -200,6 +204,9 @@ tar xf %{SOURCE1}
 %{_bindir}/xmlrpc_dumpserver
 
 %changelog
+* Tue Aug 04 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 1.51.0-11.1
+- Fix HTML injection in Abyss HTTP server responses CVE-2026-15928
+
 * Wed Mar 19 2025 Rob Crittenden <rcritten@redhat.com> - 1.51.0-11
 - Restrict XML Entity Expansion Depth in libexpat CVE-2024-8176
 

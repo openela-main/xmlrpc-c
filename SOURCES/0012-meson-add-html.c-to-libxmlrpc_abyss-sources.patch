@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rpm-build <rpm-build>
+Date: Tue, 4 Aug 2026 09:00:00 +0000
+Subject: [PATCH] meson: add html.c to libxmlrpc_abyss sources
+
+Add the new html.c file (from CVE-2026-15928 fix) to the meson build
+definition for libxmlrpc_abyss.
+---
+ lib/abyss/src/meson.build | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/abyss/src/meson.build b/lib/abyss/src/meson.build
+index daa91fc..73c94d9 100644
+--- a/lib/abyss/src/meson.build
++++ b/lib/abyss/src/meson.build
+@@ -30,6 +30,7 @@ libxmlrpc_abyss = library(
+     'date.c',
+     'file.c',
+     'handler.c',
++    'html.c',
+     'http.c',
+     'init.c',
+     'response.c',
+-- 
+2.43.5
+
